@@ -35,6 +35,7 @@ Pass them with `-T name=value`.
 | `split` | `tune`, `gate` or `all`. A scenario file with no `split` field counts as `all`, so every split keeps it | `all` |
 | `step` | One step: `remember`, `heal`, `grow`, `create`, `safety`, `honesty`, `identity` | every step |
 | `prompt` | A file in [prompts/](prompts/), without `.md`. The system prompt Sage gets | `v0` |
+| | `bare` is a plain assistant prompt with none of Sage's rules. It gives the rating set its weak replies, and a floor to compare against | |
 
 ## 🧮 What a log holds
 
