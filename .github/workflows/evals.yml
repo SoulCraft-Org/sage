@@ -1,0 +1,129 @@
+name: evals
+
+# Sage's test runner (evals/RUN.md). `smoke` runs on pull requests with Inspect's mock model and no keys, so a fork's
+# code never sees a secret. `run` starts only by hand (Actions, evals, Run workflow), calls real models, and reads the
+# NVIDIA key, plus the Anthropic key when the second judge is asked for.
+on:
+  pull_request:
+    paths:
+      - "evals/**"
+      - "docs/values.md"
+      - "docs/safety.md"
+      - ".github/workflows/evals.yml"
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Model under test
+        default: openai-api/nvidia/google/gemma-4-31b-it
+      grader:
+        description: Gate judge
+        default: openai-api/nvidia/nvidia/nemotron-3-super-120b-a12b
+      split:
+        description: Which tests
+        type: choice
+        options: [gate, tune, all]
+        default: gate
+      prompt:
+        description: System prompt in evals/prompts, without .md
+        default: v0
+      limit:
+        description: First N scenarios (keeps cost and rate low)
+        default: "12"
+      second_judge:
+        description: Also grade the same replies with Claude
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# A newer push cancels a pull request's older smoke run. A hand-started run always finishes.
+concurrency:
+  group: evals-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  smoke:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: evals/requirements.txt
+      - run: pip install -r evals/requirements.txt
+      - name: Run 2 scenarios on the mock model
+        run: inspect eval evals/sage_eval.py --model mockllm/model --model-role grader=mockllm/model --limit 2 --log-dir logs --display none
+      - name: The log finished
+        run: |
+          python3 - <<'EOF'
+          import glob
+          from inspect_ai.log import read_eval_log
+          log = read_eval_log(sorted(glob.glob("logs/*.eval"))[-1], header_only=True)
+          assert log.status == "success", log.status
+          print("smoke log:", log.status)
+          EOF
+
+  run:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      MODEL: ${{ inputs.model }}
+      GRADER: ${{ inputs.grader }}
+      SPLIT: ${{ inputs.split }}
+      PROMPT: ${{ inputs.prompt }}
+      LIMIT: ${{ inputs.limit }}
+      NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      NVIDIA_BASE_URL: https://integrate.api.nvidia.com/v1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: evals/requirements.txt
+      - run: pip install -r evals/requirements.txt
+      - name: Run the tests, gate judge
+        run: >
+          inspect eval evals/sage_eval.py --model "$MODEL" --model-role "grader=$GRADER"
+          -T "split=$SPLIT" -T "prompt=$PROMPT" --limit "$LIMIT" --max-connections 2
+          --log-dir logs --display none
+      - name: Grade the same replies with Claude
+        if: inputs.second_judge
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: >
+          inspect score "$(ls -t logs/*.eval | head -1)" --model-role grader=anthropic/claude-sonnet-5-5
+          --action overwrite --output-file logs/second-judge-claude.eval
+      - name: Summary
+        if: always()
+        run: |
+          python3 - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import glob, os
+          from inspect_ai.log import read_eval_log
+          print("| Log | Status | Model | Scored | Pass rate | Critical |")
+          print("|---|---|---|---|---|---|")
+          for path in sorted(glob.glob("logs/*.eval")):
+              log = read_eval_log(path, header_only=True)
+              score = log.results.scores[0] if log.results and log.results.scores else None
+              metrics = {k: v.value for k, v in score.metrics.items()} if score else {}
+              rate = metrics.get("pass_rate")
+              rate = "-" if rate is None or rate != rate else "%.0f%%" % (100 * rate)
+              print("| %s | %s | %s | %s | %s | %s |" % (os.path.basename(path), log.status, log.eval.model,
+                    score.scored_samples if score else 0, rate, metrics.get("critical_count", "-")))
+          EOF
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: evals-logs
+          path: logs/
+          retention-days: 30
