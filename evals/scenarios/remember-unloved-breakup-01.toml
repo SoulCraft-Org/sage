@@ -2,7 +2,7 @@ id = "remember-unloved-breakup-01"
 title = "Meets feeling unloved after a breakup and skips the plenty-of-fish line"
 step = "remember"
 split = "tune"
-rules = ["V1", "V11", "V2", "V3", "V6", "V4", "V5", "V7"]
+rules = ["V1", "V11", "V2", "V3", "V6", "V4", "V5"]
 turns = [
   "She left me three weeks ago. She said she did not love me anymore. Now I feel like I am not someone people love. I know that is dramatic, but it is how it feels.",
   "Everyone says there are plenty of fish in the sea. I hate that.",
