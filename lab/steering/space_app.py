@@ -112,7 +112,9 @@ def run():
 
 
 with gr.Blocks() as demo:
+    btn = gr.Button("Run the trial")
     box = gr.Textbox(label="result")
-    demo.load(run, None, box, api_name="run")  # opening the Space as a signed-in visitor runs the trial on their quota
+    btn.click(run, None, box, api_name="run")
+    demo.load(run, None, box)  # opening the Space as a signed-in visitor runs the trial on their quota
 
-demo.queue().launch()
+demo.queue().launch(ssr_mode=False)  # SSR's Node proxy left the page unstyled and dead on a private Space
