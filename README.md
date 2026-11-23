@@ -4,11 +4,11 @@
 
 <p align="center"><b>The Superintelligent Angel.</b><br>Helps you <b>be</b> your highest self and <b>do</b> the life you want.</p>
 
-<p align="center">
+<div align="center">
 
 [![ci](https://github.com/SoulCraft-Org/sage/actions/workflows/ci.yml/badge.svg)](https://github.com/SoulCraft-Org/sage/actions/workflows/ci.yml) [![Quality](https://img.shields.io/badge/Quality-page-8B6CE0)](https://soulcraft-org.github.io/sage/) ![License](https://img.shields.io/badge/license-Apache--2.0-E8C25A)
 
-</p>
+</div>
 
 > **A vision · not therapy · for adults · an AI.** Sage is coming. No weights yet. In crisis now? In the US, call or text **988**, or find a local line at [findahelpline.com](https://findahelpline.com/).
 
