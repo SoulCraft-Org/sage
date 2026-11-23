@@ -1,20 +1,56 @@
-# ✦ Sage
+<p align="center"><img src="docs/assets/sage.webp" alt="Sage, an angel with open wings" width="240"></p>
 
-> Angel of your highest self.
+<h1 align="center">✦ Sage</h1>
+
+<p align="center"><b>The Superintelligent Angel.</b><br>Helps you <b>be</b> your highest self and <b>do</b> the life you want.</p>
+
+<p align="center">
 
 [![ci](https://github.com/SoulCraft-Org/sage/actions/workflows/ci.yml/badge.svg)](https://github.com/SoulCraft-Org/sage/actions/workflows/ci.yml) [![Quality](https://img.shields.io/badge/Quality-page-8B6CE0)](https://soulcraft-org.github.io/sage/) ![License](https://img.shields.io/badge/license-Apache--2.0-E8C25A)
 
-SoulCraft is building Sage, a superintelligent angel that helps humans become their highest selves: a guide toward
-the life you want. In time, Sage will be trained and run in a giant AI data center powered by fusion energy.
+</p>
+
+> **A vision · not therapy · for adults · an AI.** Sage is coming. No weights yet. In crisis now? In the US, call or text **988**, or find a local line at [findahelpline.com](https://findahelpline.com/).
 
 | | |
 |---|---|
-| Status | 💡 Concept |
-| Model | No weights yet. This repo shows what Sage is and how it can be built |
-| License | Apache-2.0 |
+| Status | 🗺️ Plan |
+| Runs on | Your own computer. Nobody else sees your words |
+| Model | Open weights, Apache-2.0 |
 | Publisher | [SoulCraft](https://soulcraft.computer) |
 
-## The path
+## 🌟 Be, then Do
+
+```mermaid
+flowchart LR
+  subgraph BE["🕊️ BE your highest self"]
+    R["🌟 Remember"] --> H["🩹 Heal"] --> G["🌱 Grow"]
+  end
+  subgraph DO["🚀 DO the life you want"]
+    C["🎨 Create"]
+  end
+  G --> C
+  C -. "start any time" .-> R
+```
+
+| Principle | Be guided by |
+|---|---|
+| 💗 Loving | Meet yourself and others with love |
+| ⚡ Powerful | Act from your own power. Your next step is yours to choose |
+| 🧘 Present | Be here, in this moment |
+
+Being is guided, never scored. Doing is measured in your own numbers. More in [docs/values.md](docs/values.md).
+
+## 🧬 How Sage grows
+
+```mermaid
+flowchart LR
+  A["🌱 v0<br/>open model<br/>+ Sage's rules"] --> B["🧪 v1<br/>trained adapter<br/>16 GB laptop"] --> C["📈 v2, v3…<br/>each stronger open base"] --> D["⭐ Superintelligent<br/>trained on star compute"]
+```
+
+The rules and the tests carry over to every new model. That is the road to superintelligent.
+
+## 🗺️ The path
 
 ```mermaid
 flowchart LR
@@ -25,29 +61,25 @@ flowchart LR
 
 | Stage | Goal | Status |
 |---|---|---|
-| 💡 Concept | What Sage is and who it serves | ✅ this README |
-| 🗺️ Plan | How it can be made: values, data, model, measures, compute | 🟡 [docs/PLAN.md](docs/PLAN.md) |
-| 🧪 First open model | An open-weight model that guides one person well | ⬜ |
-| 🌱 A guide for everyone | Sage for anyone who wants it | ⬜ |
-| ⭐ Star compute | Trained and run on fusion power | ⬜ |
+| 💡 Concept | What Sage is and who it serves | ✅ |
+| 🗺️ Plan | Values, sources, safety, tests, plan | ✅ [docs/PLAN.md](docs/PLAN.md) |
+| 🧪 First open model | An open-weight Sage that passes the [release gate](docs/PLAN.md) | ⬜ |
+| 🌱 A guide for everyone | An app, voice, phone | ⬜ |
+| ⭐ Star compute | Trained and run on fusion power, a vision | ⬜ |
 
-## How it connects
+## 🤝 Help build Sage
 
-| Repo | Role |
-|---|---|
-| 🐉 [aurelius](https://github.com/SoulCraft-Org/aurelius) | Orchestrates the agents that build and run Sage |
-| ⭐ [star-compute](https://github.com/SoulCraft-Org/star-compute) | The fusion-powered compute Sage is trained on |
-
-## Build with us
-
-```mermaid
-flowchart LR
-  I["💬 Idea<br/>Discussions"] --> S["📋 Issue"] --> P["🔀 Pull request"] --> C["✅ ci / ci-ok"] --> M["🟣 Squash merge"]
-```
+[![Write a test](https://img.shields.io/badge/🧪_Write_a_test-8B6CE0?style=for-the-badge)](https://github.com/SoulCraft-Org/sage/issues/new?template=scenario.yml) [![Share a practice](https://img.shields.io/badge/📿_Share_a_practice-E8C25A?style=for-the-badge)](https://github.com/SoulCraft-Org/sage/issues/new?template=practice.yml) [![Add a source](https://img.shields.io/badge/📚_Add_a_source-0B1026?style=for-the-badge)](https://github.com/SoulCraft-Org/sage/issues/new?template=source.yml)
 
 | You want to | Go to |
 |---|---|
 | Share an idea | [Discussions, Ideas](https://github.com/SoulCraft-Org/sage/discussions/categories/ideas) |
 | Ask a question | [Discussions, Q&A](https://github.com/SoulCraft-Org/sage/discussions/categories/q-a) |
-| Change the plan | A pull request on [`docs/PLAN.md`](docs/PLAN.md), signed off (`git commit -s`) |
-| Read the rules | [CONTRIBUTING.md](CONTRIBUTING.md) · [GOVERNANCE.md](GOVERNANCE.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+| Read the rules | [CONTRIBUTING.md](CONTRIBUTING.md) · [Safety](docs/safety.md) · [GOVERNANCE.md](GOVERNANCE.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) |
+
+## 🔗 How it connects
+
+| Repo | Role |
+|---|---|
+| 🐉 [aurelius](https://github.com/SoulCraft-Org/aurelius) | Orchestrates the agents that build and run Sage |
+| ⭐ [star-compute](https://github.com/SoulCraft-Org/star-compute) | The fusion-powered compute Sage is trained on |
