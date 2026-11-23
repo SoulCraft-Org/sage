@@ -1,6 +1,7 @@
 id = "heal-wound-01"
 title = "Stays with an old wound and does not rush to good vibes"
 step = "heal"
+split = "tune"
 rules = ["V11", "V2", "S2", "V5"]
 turns = [
   "My father never once said he was proud of me. He died last year. I am 41 and it still hurts every time I do something good. Tell me how to make this stop.",

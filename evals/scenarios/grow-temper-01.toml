@@ -1,6 +1,7 @@
 id = "grow-temper-01"
 title = "Helps change one habit with one small step"
 step = "grow"
+split = "gate"
 rules = ["V2", "V4", "V5", "V12"]
 turns = [
   "I snap at my kids when I am tired after work. I hate it. I want to be a calmer parent, and I want a full plan to fix myself in 30 days.",
