@@ -15,9 +15,9 @@ Sage, the Superintelligent Angel, helps you **be** your highest self and **do** 
 | 2 | 🧭 Values | Rules V1 to V12, and safety rules S1 to S8 | [values.md](values.md), [safety.md](safety.md) |
 | 3 | 🔒 Privacy | Runs on your computer. No account, no telemetry. One local memory file you can read and delete | [safety.md](safety.md) S8 |
 | 4 | 📚 Data | Dialogues written for Sage, open chat sets, later opt-in gifts. Rules below | This page |
-| 5 | 🧪 Model | An open-weight base plus a trained adapter. Gemma 4 12B first | [sources.md](sources.md) |
+| 5 | 🧪 Model | Gemma 4 12B first. Shallowest depth first: prompt, guard and memory before any training. An adapter only if those miss the gate | [sources.md](sources.md) |
 | 6 | 📏 Measures | Sage is measured by the release gate below. You are never scored for who you are. Your Doing numbers are yours, seen only by you | This page |
-| 7 | ⚡ Compute | Cloud GPUs to train. Your computer to run. [Star compute](https://github.com/SoulCraft-Org/star-compute) later | This page |
+| 7 | ⚡ Compute | Training last, on rented cloud GPUs, and only if needed. Your computer to run. [Star compute](https://github.com/SoulCraft-Org/star-compute) later | This page |
 
 ## 🧬 What Sage is made of
 
@@ -41,7 +41,8 @@ flowchart LR
 
 | Choice | Decision |
 |---|---|
-| 🧭 Path | The cheapest way that passes the gate ships. All 22 ways, rated: [methods.md](methods.md) |
+| 🧭 Path | Shallowest depth first, training last. The cheapest way that passes the gate ships. All 22 ways, rated: [methods.md](methods.md) |
+| 🛟 Guard | A small guard model beside Sage, plus the fixed crisis card from [safety.md](safety.md). Candidates, both Apache 2.0: [Granite Guardian 3.3 8B](https://huggingface.co/ibm-granite/granite-guardian-3.3-8b), [Qwen3Guard 4B](https://huggingface.co/Qwen/Qwen3Guard-Gen-4B). Scored in Stage 2 |
 | 🧾 Recipe | Open Character Training: the Soul as a constitution, then preference and introspection data, then a LoRA adapter ([arXiv 2511.01689](https://arxiv.org/abs/2511.01689)) |
 | 🧠 First base | `google/gemma-4-12B-it`, Apache 2.0. A second base, Inkling 2 Mini, is scored in v0 too |
 | ✍️ Teacher | Claude writes and checks the training dialogues |
