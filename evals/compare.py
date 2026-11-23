@@ -15,7 +15,7 @@ import pathlib
 import sys
 import tempfile
 
-GRADER = "openai-api/nvidia/nvidia/nemotron-3-super-120b-a12b"
+GRADER = "openai-api/nvidia/nvidia/nemotron-3-ultra-550b-a55b"
 SPLITS = ("tune", "gate", "all")
 
 
