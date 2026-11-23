@@ -13,6 +13,16 @@
   "scanning",
   "insights",
   "settings",
-  "pages"
+  "pages",
+  ["claude", "Claude"],
+  ["claude-settings", "Claude settings"],
+  ["desktop-app", "Claude desktop app"],
+  ["blockers", "Blockers"],
+  ["tokens", "Tokens"],
+  ["instructions", "Instructions"],
+  ["practices", "Best practices"]
+ ],
+ "packs": [
+  "Colorado-Startups/claudius@31476068e317cedfdcb62bf392f5b51c7254dd04"
  ]
 }
