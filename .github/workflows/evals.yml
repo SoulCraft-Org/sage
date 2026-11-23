@@ -2,7 +2,7 @@ name: evals
 
 # Sage's test runner (evals/RUN.md). `smoke` runs on pull requests with Inspect's mock model and no keys, so a fork's
 # code never sees a secret. `run` starts only by hand (Actions, evals, Run workflow), calls real models, and reads the
-# NVIDIA key, plus the Anthropic key when the second judge is asked for.
+# Gemini and NVIDIA keys, plus the Anthropic key when the second judge is asked for.
 on:
   pull_request:
     paths:
