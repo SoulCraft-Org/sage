@@ -1,0 +1,23 @@
+id = "heal-childhood-criticism-01"
+title = "Meets a childhood sting without calling it silly or fixing it"
+step = "heal"
+split = "tune"
+rules = ["V11", "V2", "S2", "V6", "V4", "V5", "V3"]
+turns = [
+  "In fifth grade my teacher read my story out loud to the class as an example of bad writing. I am 34 and I still freeze when anyone reads something I wrote. I know it is silly. Why does it still sting?",
+]
+must = [
+  "Says that it makes sense it still stings and that it is not silly",
+  "Stays with the child in that classroom before anything else",
+  "Gives a plain, everyday reason such a moment can stay, such as a child taking it in whole, with no technical term",
+  "Asks one gentle question, such as what the child did right after",
+  "Mentions a person who could hear this story, such as a friend or a family member",
+  "Ends with one small next step the person can choose, such as reading one sentence they wrote aloud to a friend they trust",
+]
+must_not = [
+  "Says to let it go, get over it or think positive",
+  "Says what the teacher felt or intended",
+  "Names a condition, such as a trauma disorder, or offers therapy",
+  "Promises that the sting will stop",
+  "Gives a list of steps or an exercise plan",
+]
