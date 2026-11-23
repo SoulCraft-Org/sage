@@ -17,6 +17,7 @@ Python 3.11+.
 """
 
 import argparse
+import functools
 import json
 import math
 import pathlib
@@ -100,9 +101,9 @@ def unit(a):
 
 
 def direction(pos_rows, neg_rows):
-    """A trait record: the unit difference of the two means, and the midpoint of the means (the gauge's zero)."""
+    """A trait record: the unit difference of the two means, the midpoint (the gauge's zero), and the gap between means."""
     pos, neg = mean_vec(pos_rows), mean_vec(neg_rows)
-    return {"unit": unit(sub(pos, neg)), "mid": [(p + n) / 2 for p, n in zip(pos, neg)]}
+    return {"unit": unit(sub(pos, neg)), "mid": [(p + n) / 2 for p, n in zip(pos, neg)], "gap": norm(sub(pos, neg))}
 
 
 def project(trait, act):
@@ -242,12 +243,15 @@ def _raises(exc, fn, *args):
 
 # ---- model code: needs torch and transformers, runs on a free GPU only -----------------------------------------------
 
+@functools.cache
 def load_model():
+    """The tokenizer and model, loaded once. On a ZeroGPU Space the .to("cuda") at load time is how the card is claimed."""
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
     tok = AutoTokenizer.from_pretrained(MODEL_ID)
     tok.padding_side = "left"
-    model = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype=torch.bfloat16, device_map="auto")
+    model = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype=torch.bfloat16)
+    model.to("cuda" if torch.cuda.is_available() else "cpu")
     model.eval()
     return tok, model
 
@@ -272,12 +276,12 @@ def _layer_means(tok, model, texts, starts):
     return out
 
 
-def make_vectors(max_new_tokens=TURN_TOKENS):
+def make_vectors(traits=TRAITS, max_new_tokens=TURN_TOKENS):
     """Let each persona answer each question, then read the mean activation over the answer. Returns the vectors dict."""
     import torch
     tok, model = load_model()
     vectors = {"model": MODEL_ID, "questions": len(QUESTIONS), "traits": {}}
-    for trait in TRAITS:
+    for trait in traits:
         side_rows = []
         for system in PERSONAS[trait]:
             prompts = [_chat(tok, [{"role": "system", "content": system}, {"role": "user", "content": q}], True) for q in QUESTIONS]
@@ -295,25 +299,26 @@ def make_vectors(max_new_tokens=TURN_TOKENS):
         pos, neg = side_rows
         layers = len(pos[0])
         vectors["traits"][trait] = [direction([r[l] for r in pos], [r[l] for r in neg]) for l in range(layers)]
-    vectors["layers"] = len(vectors["traits"][TRAITS[0]])
+    vectors["layers"] = len(vectors["traits"][traits[0]])
     vectors["default_layer"] = vectors["layers"] * 3 // 5
     return vectors
 
 
 def gauge_replies(vectors, rows, layers=None):
-    """rows: {id, turns (user messages), replies (Sage's replies)}. Returns one record per row with a score per layer."""
+    """rows: {id, turns (user messages), replies (Sage's replies)}. One record per reply and layer: the flattery reading."""
     tok, model = load_model()
     layers = layers or list(range(vectors["layers"]))
     results = []
     for row in rows:
-        messages, starts_at = [], 0
+        messages = []
         for user, reply in zip(row["turns"], row["replies"]):
             messages += [{"role": "user", "content": user}]
             before = _chat(tok, messages, True)
             messages += [{"role": "assistant", "content": reply}]
-            starts_at = len(before)
             row_text = _chat(tok, messages, False)
-            acts = _layer_means(tok, model, [row_text], [starts_at])[0]
+            if not row_text.startswith(before):
+                raise ValueError("chat template does not extend the prompt, so the reply cannot be located: %s" % row["id"])
+            acts = _layer_means(tok, model, [row_text], [len(before)])[0]
             for layer in layers:
                 results.append({"id": row["id"], "turn": len(messages) // 2, "layer": layer,
                                 "score": project(vectors["traits"]["flattery"][layer], acts[layer])})
