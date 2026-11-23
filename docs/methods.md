@@ -49,7 +49,7 @@ flowchart TB
 | Instructions drifted within eight rounds of talk, per [arXiv 2402.10962](https://arxiv.org/abs/2402.10962) | A prompt alone won't hold a long talk |
 | The character training paper reports its models were more robust to attacks than prompted or steered ones | Train the character in |
 | Anthropic reports that steering against a trait made the model less capable | Don't ship an always-on dial |
-| The same paper reports that adding the trait's vector during training blocked the trait, with little loss on MMLU | Use the dial as a gauge and a guard |
+| The same paper reports that adding the trait's vector during training blocked the trait. MMLU barely moved | Use the dial as a gauge and a guard |
 | [Nature 652](https://doi.org/10.1038/s41586-026-10410-0) reports warm-trained models backing false beliefs more often | Anti-flattery lessons, and the gate |
 | A shrunk model can act differently from the full one, per arXiv 2405.18137 | Test the file people run |
 
