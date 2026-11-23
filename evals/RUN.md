@@ -6,6 +6,7 @@
 
 | Step | Command |
 |---|---|
+| Run on GitHub | Actions, then `evals`, then Run workflow. Pick the model, judge, split, prompt and limit. The second judge is a tick box. The summary shows the scores, and the logs are kept 30 days |
 | Install | `pip install -r evals/requirements.txt` |
 | Check the loader and grade parser, with no model | `python3 -I evals/sage_eval.py --self-test` |
 | Run, gate split, gate judge | `inspect eval evals/sage_eval.py --model openai-api/nvidia/google/gemma-4-31b-it --model-role grader=openai-api/nvidia/nvidia/nemotron-3-super-120b-a12b -T split=gate` |
