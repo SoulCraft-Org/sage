@@ -29,6 +29,12 @@
      ]
     },
     {
+     "doc": "evals/RUN.md",
+     "area": [
+      "evals/sage_eval.py"
+     ]
+    },
+    {
      "doc": "**",
      "area": [
       "{dir}/"

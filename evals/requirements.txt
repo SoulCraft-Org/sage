@@ -1,0 +1,4 @@
+# Pinned to the versions the runner was checked against (2026-11-23). Python 3.11 or newer.
+inspect-ai==0.3.291
+openai==3.57.0
+anthropic==2.12.0
