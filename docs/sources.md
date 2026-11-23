@@ -27,8 +27,8 @@
 | Topic | Finding | Source |
 |---|---|---|
 | 🔧 Recipe | Open Character Training: a constitution, then DPO and introspection data, then a LoRA adapter. Holds up under attack better than a system prompt | [arXiv 2511.01689](https://arxiv.org/abs/2511.01689), [MIT code](https://github.com/maiush/OpenCharacterTraining) |
-| ⚠️ Warmth trap | According to the Oxford study, warm-trained models were about 40% likelier to back a wrong belief. Worst when the user is sad | [Nature 652, 2026](https://syntheticsociety.oii.ox.ac.uk/research/warm-llm) |
-| 🧠 Base model | Gemma 4 12B: 12.0B parameters, Apache 2.0 | [Model card](https://huggingface.co/google/gemma-4-12B-it), [licence](https://ai.google.dev/gemma/docs/gemma_4_license) |
+| ⚠️ Warmth trap | According to the Oxford study, warm-trained models were about 40% likelier to back a wrong belief. Worst when the user is sad | [Oxford study page](https://syntheticsociety.oii.ox.ac.uk/research/warm-llm), [Nature 652, 2026](https://doi.org/10.1038/s41586-026-10410-0) |
+| 🧠 Base model | Gemma 4 12B: 12.0B parameters. Licence: the plain Apache 2.0 text | [Model card](https://huggingface.co/google/gemma-4-12B-it), [Apache 2.0 licence page](https://gemma.ai/resources/apache-2/) |
 | 👩‍🏫 Teacher | gpt-oss-120b: Apache 2.0. Its usage policy asks only for lawful use | [Model card](https://huggingface.co/openai/gpt-oss-120b) |
 | 🚫 Closed models | Anthropic's terms bar using its services to train competing AI models | [Commercial Terms D.4](https://www.anthropic.com/legal/commercial-terms) |
 | 🧭 Drift | Persona vectors can flag risky training data and watch for drift | [Anthropic, 2025-08-01](https://www.anthropic.com/research/persona-vectors) |
