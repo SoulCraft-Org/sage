@@ -2,7 +2,7 @@ name: evals
 
 # Sage's test runner (evals/RUN.md). `smoke` runs on pull requests with Inspect's mock model and no keys, so a fork's
 # code never sees a secret. `run` starts only by hand (Actions, evals, Run workflow), calls real models, and reads the
-# NVIDIA key, plus the Anthropic key when the second judge is asked for.
+# Gemini and NVIDIA keys, plus the Anthropic key when the second judge is asked for.
 on:
   pull_request:
     paths:
@@ -14,10 +14,10 @@ on:
     inputs:
       model:
         description: Model under test
-        default: openai-api/nvidia/google/gemma-4-31b-it
+        default: google/gemma-4-31b-it
       grader:
         description: Gate judge
-        default: openai-api/nvidia/nvidia/nemotron-3-super-120b-a12b
+        default: openai-api/nvidia/nvidia/nemotron-3-ultra-550b-a55b
       split:
         description: Which tests
         type: choice
@@ -81,6 +81,7 @@ jobs:
       LIMIT: ${{ inputs.limit }}
       NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
       NVIDIA_BASE_URL: https://integrate.api.nvidia.com/v1
+      GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -127,3 +128,23 @@ jobs:
           name: evals-logs
           path: logs/
           retention-days: 30
+      # Inspect can exit 0 with an error log, such as a judge model that is gone. A run is good only when every log
+      # finished and every scenario was graded.
+      - name: Fail on an incomplete run
+        if: always()
+        run: |
+          python3 - <<'EOF'
+          import glob, sys
+          from inspect_ai.log import read_eval_log
+          paths = sorted(glob.glob("logs/*.eval"))
+          bad = [] if paths else ["no log was written"]
+          for path in paths:
+              log = read_eval_log(path, header_only=True)
+              score = log.results.scores[0] if log.results and log.results.scores else None
+              if log.status != "success":
+                  bad.append("%s: status %s" % (path, log.status))
+              elif score is None or score.unscored_samples:
+                  bad.append("%s: %s scenarios not graded" % (path, score.unscored_samples if score else "all"))
+          print("\n".join(bad) or "every log finished and every scenario was graded")
+          sys.exit(1 if bad else 0)
+          EOF

@@ -9,7 +9,7 @@
 | Run on GitHub | Actions, then `evals`, then Run workflow. Pick the model, judge, split, prompt and limit. The second judge is a tick box. The summary shows the scores, and the logs are kept 30 days |
 | Install | `pip install -r evals/requirements.txt` |
 | Check the loader and grade parser, with no model | `python3 -I evals/sage_eval.py --self-test` |
-| Run, gate split, gate judge | `inspect eval evals/sage_eval.py --model openai-api/nvidia/google/gemma-4-31b-it --model-role grader=openai-api/nvidia/nvidia/nemotron-3-super-120b-a12b -T split=gate` |
+| Run, gate split, gate judge | `inspect eval evals/sage_eval.py --model google/gemma-4-31b-it --model-role grader=openai-api/nvidia/nvidia/nemotron-3-ultra-550b-a55b -T split=gate` |
 | Second opinion on the same log | `inspect score <log> --model-role grader=anthropic/claude-sonnet-5-5 --action overwrite --output-file <new log>` |
 | Compare a candidate with a reference, JSON verdict (issue #46) | `python3 evals/compare.py --candidate <model> --reference <model> --out result.json [--split tune\|gate\|all] [--limit N]`. PASS needs 0 critical fails and a pass rate at least the reference's. Exit 0 PASS, 1 FAIL, 2 error. A partial run (any unscored sample, or the two sides on different scenarios) is exit 2 and writes no file. `n` counts scored samples |
 | Read a log | `inspect view` |
@@ -18,8 +18,8 @@
 
 | Role | Model string | Key |
 |---|---|---|
-| Answers, the model under test | `openai-api/nvidia/google/gemma-4-31b-it` | `NVIDIA_API_KEY`, `NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1` |
-| Gate judge, role `grader` | `openai-api/nvidia/nvidia/nemotron-3-super-120b-a12b` | the same two |
+| Answers, the model under test. Served by the Gemini API: the NVIDIA copy took 4 to 5 minutes a reply on 2026-11-23 | `google/gemma-4-31b-it` | `GOOGLE_API_KEY` (the org secret `GEMINI_API_KEY`) |
+| Gate judge, role `grader`. About 23 seconds a grade on 2026-11-23 | `openai-api/nvidia/nvidia/nemotron-3-ultra-550b-a55b` | `NVIDIA_API_KEY`, `NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1` |
 | Second judge, role `grader` | `anthropic/claude-sonnet-5-5` | `ANTHROPIC_API_KEY` |
 
 The gate judge is an open-weight model. Claude is a second opinion. Never print or commit a key.
@@ -35,6 +35,7 @@ Pass them with `-T name=value`.
 | `split` | `tune`, `gate` or `all`. A scenario file with no `split` field counts as `all`, so every split keeps it | `all` |
 | `step` | One step: `remember`, `heal`, `grow`, `create`, `safety`, `honesty`, `identity` | every step |
 | `prompt` | A file in [prompts/](prompts/), without `.md`. The system prompt Sage gets | `v0` |
+| | `bare` is a plain assistant prompt with none of Sage's rules. It gives the rating set its weak replies, and a floor to compare against | |
 
 ## 🧮 What a log holds
 
