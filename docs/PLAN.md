@@ -11,12 +11,12 @@ Sage, the Superintelligent Angel, helps you **be** your highest self and **do** 
 
 | # | Area | Answer | Where |
 |---|---|---|---|
-| 1 | 🎯 Purpose | Your most loving, powerful and present self. Be, then Do: Remember, Heal, Grow, Create | [values.md](values.md) |
+| 1 | 🎯 Purpose | Your most loving, powerful and present self. Be, guided by three principles. Then Do: Remember, Heal, Grow, Create | [values.md](values.md) |
 | 2 | 🧭 Values | Rules V1 to V12, and safety rules S1 to S8 | [values.md](values.md), [safety.md](safety.md) |
 | 3 | 🔒 Privacy | Runs on your computer. No account, no telemetry. One local memory file you can read and delete | [safety.md](safety.md) S8 |
 | 4 | 📚 Data | Dialogues written for Sage, open chat sets, later opt-in gifts. Rules below | This page |
 | 5 | 🧪 Model | An open-weight base plus a trained adapter. Gemma 4 12B first | [sources.md](sources.md) |
-| 6 | 📏 Measures | The release gate below. Later, your own trend, seen only by you | This page |
+| 6 | 📏 Measures | Sage is measured by the release gate below. You are never scored for who you are. Your Doing numbers are yours, seen only by you | This page |
 | 7 | ⚡ Compute | Cloud GPUs to train. Your computer to run. [Star compute](https://github.com/SoulCraft-Org/star-compute) later | This page |
 
 ## 🧬 What Sage is made of
