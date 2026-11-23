@@ -35,6 +35,12 @@
      ]
     },
     {
+     "doc": "evals/prompts/*.md",
+     "area": [
+      "evals/sage_eval.py"
+     ]
+    },
+    {
      "doc": "**",
      "area": [
       "{dir}/"
