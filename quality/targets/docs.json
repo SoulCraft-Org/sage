@@ -23,6 +23,12 @@
      "area": []
     },
     {
+     "doc": "evals/README.md",
+     "area": [
+      "tools/check_scenarios.py"
+     ]
+    },
+    {
      "doc": "**",
      "area": [
       "{dir}/"
