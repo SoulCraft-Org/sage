@@ -28,6 +28,7 @@ body:
         - create
         - safety
         - honesty
+        - identity
     validations:
       required: true
   - type: textarea
