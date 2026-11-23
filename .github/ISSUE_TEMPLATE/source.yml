@@ -1,0 +1,48 @@
+name: Research source
+description: "A study, report or law that Sage should know about. It joins the dated table in docs/sources.md."
+title: "Source: its name"
+labels: ["help"]
+type: Task
+body:
+  - type: input
+    id: link
+    attributes:
+      label: Link
+      description: "A link to the source itself."
+      placeholder: "https://"
+    validations:
+      required: true
+  - type: input
+    id: date_opened
+    attributes:
+      label: Date opened
+      description: "The day you opened the link, as YYYY-MM-DD."
+      placeholder: "2026-11-22"
+    validations:
+      required: true
+  - type: textarea
+    id: finding
+    attributes:
+      label: Finding
+      description: "What the source found, in one or two plain sentences. Say who it studied."
+    validations:
+      required: true
+  - type: input
+    id: figure
+    attributes:
+      label: Figure
+      description: "The one number that matters, with where it appears. Say so if it is your own estimate."
+      placeholder: "42 percent, Table 2"
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Before you send
+      options:
+        - label: "No real person's story"
+          required: true
+        - label: "No private details"
+          required: true
+        - label: "I offer this under Apache-2.0"
+          required: true
