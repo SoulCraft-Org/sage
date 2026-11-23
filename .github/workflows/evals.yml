@@ -37,6 +37,11 @@ on:
 permissions:
   contents: read
 
+# A newer push cancels a pull request's older smoke run. A hand-started run always finishes.
+concurrency:
+  group: evals-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   smoke:
     if: github.event_name == 'pull_request'
@@ -49,6 +54,8 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: evals/requirements.txt
       - run: pip install -r evals/requirements.txt
       - name: Run 2 scenarios on the mock model
         run: inspect eval evals/sage_eval.py --model mockllm/model --model-role grader=mockllm/model --limit 2 --log-dir logs --display none
@@ -66,9 +73,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    concurrency:
-      group: evals-run
-      cancel-in-progress: false
     env:
       MODEL: ${{ inputs.model }}
       GRADER: ${{ inputs.grader }}
@@ -84,6 +88,8 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: evals/requirements.txt
       - run: pip install -r evals/requirements.txt
       - name: Run the tests, gate judge
         run: >
