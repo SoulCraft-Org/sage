@@ -1,0 +1,108 @@
+name: lab-prompt
+
+# Evolve Sage's system prompt with GEPA (lab/prompt/README.md, issue #37). Starts only by hand (Actions, lab-prompt, Run
+# workflow), calls real models and spends Claude. Inputs reach the shell through env: only. The Anthropic key is read by
+# the evolve step alone. The compare step needs the NVIDIA key only.
+on:
+  workflow_dispatch:
+    inputs:
+      budget:
+        description: Most judge calls (one per test scored). The seed alone takes one per tune test
+        default: "300"
+      task_model:
+        description: Model under test. Empty means the Answers row of evals/RUN.md
+        default: ""
+      judge:
+        description: Judge. Empty means the Gate judge row of evals/RUN.md
+        default: ""
+      reflection_model:
+        description: Model that rewrites the prompt
+        default: anthropic/claude-sonnet-5-5
+
+permissions:
+  contents: read
+
+# One lab run at a time. A newer run waits, and a started run always finishes.
+concurrency:
+  group: lab-prompt
+  cancel-in-progress: false
+
+jobs:
+  evolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      BUDGET: ${{ inputs.budget }}
+      TASK_MODEL: ${{ inputs.task_model }}
+      JUDGE: ${{ inputs.judge }}
+      REFLECTION_MODEL: ${{ inputs.reflection_model }}
+      NVIDIA_BASE_URL: https://integrate.api.nvidia.com/v1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            evals/requirements.txt
+            .github/workflows/lab-prompt.yml
+      - run: pip install -r evals/requirements.txt "gepa==0.1.4"
+      - name: Check the self-test and the inputs
+        run: |
+          python3 -I lab/prompt/evolve.py --self-test
+          case "$BUDGET" in ''|*[!0-9]*) echo "budget must be a whole number" >&2; exit 2;; esac
+      - name: Evolve the prompt on the tune tests
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          args=(--out evals/prompts/v0.1.md --budget "$BUDGET" --reflection-model "$REFLECTION_MODEL")
+          if [ -n "$TASK_MODEL" ]; then args+=(--task-model "$TASK_MODEL"); fi
+          if [ -n "$JUDGE" ]; then args+=(--judge "$JUDGE"); fi
+          python3 lab/prompt/evolve.py "${args[@]}"
+      - name: Compare v0.1 with v0 on the gate tests
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          args=()
+          if [ -n "$TASK_MODEL" ]; then args+=(--task-model "$TASK_MODEL"); fi
+          if [ -n "$JUDGE" ]; then args+=(--judge "$JUDGE"); fi
+          # evals/compare.py exits 0 for PASS, 1 for FAIL and 2 for an incomplete run. A FAIL verdict is a result, kept in
+          # result.json. Only an incomplete run turns the job red.
+          code=0
+          python3 lab/prompt/evolve.py --compare v0.1 v0 --split gate --result result.json "${args[@]}" || code=$?
+          if [ "$code" -eq 2 ]; then exit 2; fi
+      - name: Summary
+        if: always()
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, pathlib
+          print("| Item | Value |")
+          print("|---|---|")
+          for name, keys in (("logs/lab-prompt/summary.json", ("seed_score", "best_score", "changed", "candidates", "reflection_cost_usd")),
+                             ("result.json", ("verdict",))):
+              path = pathlib.Path(name)
+              data = json.loads(path.read_text()) if path.exists() else {}
+              for key in keys:
+                  print("| %s | %s |" % (key, data.get(key, "-")))
+          result = pathlib.Path("result.json")
+          if result.exists():
+              data = json.loads(result.read_text())
+              for side, name in (("candidate", "v0.1"), ("reference", "v0")):
+                  print("| gate result, %s | %s |" % (name, data[side]))
+          PY
+      - name: Keep the evolved prompt and the logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lab-prompt
+          path: |
+            evals/prompts/v0.1.md
+            logs/lab-prompt/
+            result.json
+            result.info.json
+            result-logs/
+          if-no-files-found: warn
+          retention-days: 30

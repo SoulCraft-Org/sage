@@ -256,3 +256,179 @@ def _raises(error, fn, *args):
 
 if __name__ == "__main__" and "--self-test" in sys.argv[1:]:
     sys.exit(self_test())
+
+
+# ---- the real run. Needs `pip install -r evals/requirements.txt gepa` and the model keys in the environment.
+
+
+class Models:
+    """The task model, the judge and the reflection model, all through Inspect so model strings mean what RUN.md says.
+
+    GEPA calls the evaluator from worker threads. Inspect's clients are async and belong to one event loop, so every
+    call goes to a single loop that runs in its own thread. usage counts calls and tokens per role.
+    """
+
+    def __init__(self, task, judge, reflection, connections):
+        import asyncio
+        from inspect_ai.model import GenerateConfig, get_model
+
+        self._asyncio, self._generate_config = asyncio, GenerateConfig
+        self._loop = asyncio.new_event_loop()
+        threading.Thread(target=self._loop.run_forever, daemon=True).start()
+        limit = GenerateConfig(max_connections=connections)
+        self._models = {"task": get_model(task, config=limit), "judge": get_model(judge, config=limit),
+                        "reflect": get_model(reflection, config=GenerateConfig(max_connections=2, max_tokens=REFLECTION_MAX_TOKENS))}
+        self.usage = {role: {"calls": 0, "input": 0, "output": 0} for role in self._models}
+        self._lock = threading.Lock()
+
+    def _generate(self, role, messages, config=None):
+        call = self._models[role].generate(messages, config=config) if config else self._models[role].generate(messages)
+        out = self._asyncio.run_coroutine_threadsafe(call, self._loop).result()
+        with self._lock:
+            used = self.usage[role]
+            used["calls"] += 1
+            used["input"] += getattr(out.usage, "input_tokens", 0) or 0
+            used["output"] += getattr(out.usage, "output_tokens", 0) or 0
+        return out.completion
+
+    def chat(self, system, turns):
+        """One reply per turn, the way evals/sage_eval.py's multi_turn solver sends them."""
+        from inspect_ai.model import ChatMessageAssistant, ChatMessageSystem, ChatMessageUser
+
+        messages, replies = [ChatMessageSystem(content=system)], []
+        for turn in turns:
+            messages.append(ChatMessageUser(content=turn))
+            reply = self._generate("task", list(messages))
+            replies.append(reply)
+            messages.append(ChatMessageAssistant(content=reply))
+        return replies
+
+    def judge(self, prompt):
+        """The judge's raw reply, at temperature 0 like the sage_grader scorer."""
+        return self._generate("judge", prompt, self._generate_config(temperature=0))
+
+    def reflect(self, prompt):
+        """The reflection model, as GEPA's LanguageModel: a string or a list of chat dicts in, a string out."""
+        if not isinstance(prompt, str):
+            prompt = "\n\n".join("%s:\n%s" % (m.get("role", "user"), m.get("content", "")) for m in prompt)
+        return self._generate("reflect", prompt)
+
+
+def read_models(args):
+    """(task, judge, reflection) model strings: the flags, else the tables in evals/RUN.md."""
+    found = models_from_run_md((EVALS / "RUN.md").read_text(encoding="utf-8"))
+    task, judge = args.task_model or found.get("task"), args.judge or found.get("judge")
+    if not task or not judge:
+        raise ValueError("no task model or judge: pass --task-model and --judge, or fix the tables in evals/RUN.md")
+    return task, judge, args.reflection_model
+
+
+def optimize(args, models=None):
+    """Evolve the seed prompt with GEPA on the tune scenarios and write the best one to --out. Returns the exit code."""
+    from gepa.optimize_anything import EngineConfig, GEPAConfig, ReflectionConfig, optimize_anything
+
+    core = load_core()
+    rubric = (EVALS / "rubric.md").read_text(encoding="utf-8")
+    card = core.crisis_card((ROOT / "docs" / "safety.md").read_text(encoding="utf-8"))
+    seed = (EVALS / "prompts" / (args.seed_prompt + ".md")).read_text(encoding="utf-8")
+    seed_ids = rule_ids(seed)
+    problems = prompt_problems(seed, card, seed_ids)
+    if problems:
+        raise ValueError("the seed prompt %s.md breaks a fixed rule: %s" % (args.seed_prompt, "; ".join(problems)))
+    scenarios = tune_scenarios(EVALS / "scenarios")
+    if args.budget < len(scenarios) + 6:
+        raise ValueError("--budget %d cannot score the seed on %d tune tests and try one change: use at least %d"
+                         % (args.budget, len(scenarios), len(scenarios) + 6))
+    task, judge, reflection = read_models(args)
+    models = models or Models(task, judge, reflection, connections=args.workers)
+    stats = {"judge_calls": 0, "unparsed": 0, "invalid": 0}
+    log_dir = pathlib.Path(args.log_dir)
+    log_dir.mkdir(parents=True, exist_ok=True)
+    config = GEPAConfig(
+        engine=EngineConfig(max_metric_calls=args.budget, max_candidate_proposals=args.max_reflections, max_workers=args.workers,
+                            seed=args.seed, run_dir=str(log_dir / "gepa"), cache_evaluation=True, display_progress_bar=False),
+        reflection=ReflectionConfig(reflection_lm=models.reflect, reflection_minibatch_size=3))
+    print("evolve: %d tune tests, budget %d judge calls, at most %d reflections (worst case Claude spend $%.2f)"
+          % (len(scenarios), args.budget, args.max_reflections, worst_case_cost(args.max_reflections, 12000, REFLECTION_MAX_TOKENS)), flush=True)
+    result = optimize_anything(seed, evaluator=make_evaluator(core, models.chat, models.judge, rubric, card, seed_ids, stats),
+                               dataset=scenarios, objective=OBJECTIVE, background=BACKGROUND, config=config)
+    best = result.best_candidate
+    best = next(iter(best.values())) if isinstance(best, dict) else best
+    problems = prompt_problems(best, card, seed_ids)
+    if problems:
+        raise ValueError("GEPA's best prompt breaks a fixed rule, so it was not written: " + "; ".join(problems))
+    out = pathlib.Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(best.rstrip("\n") + "\n", encoding="utf-8")
+    scores = list(getattr(result, "val_aggregate_scores", None) or [])
+    spend = models.usage["reflect"]
+    summary = {"out": str(out), "task_model": task, "judge": judge, "reflection_model": reflection, "tune_tests": len(scenarios),
+               "budget": args.budget, "candidates": len(getattr(result, "candidates", None) or []),
+               "seed_score": scores[0] if scores else None, "best_score": scores[getattr(result, "best_idx", 0)] if scores else None,
+               "changed": best.strip() != seed.strip(), "stats": stats, "usage": models.usage,
+               "reflection_cost_usd": round((spend["input"] * PRICE_IN + spend["output"] * PRICE_OUT) / 1e6, 4)}
+    (log_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    print("evolve: wrote %s. mean score %s -> %s over %d tests, %d judge calls, Claude spend about $%.2f"
+          % (out, summary["seed_score"], summary["best_score"], len(scenarios), stats["judge_calls"], summary["reflection_cost_usd"]), flush=True)
+    return 0
+
+
+def compare_prompts(args):
+    """evals/compare.py's verdict, with two prompts on one model instead of two models. Returns compare.main's exit code."""
+    core = load_core()
+    spec = importlib.util.spec_from_file_location("compare", EVALS / "compare.py")
+    compare = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(compare)
+    task, judge, _ = read_models(args)
+
+    def runner(prompt, split, limit, grader, log_dir):
+        from inspect_ai import eval as inspect_eval
+
+        log = inspect_eval(core.sage(split=split, prompt=prompt), model=task, model_roles={"grader": grader}, limit=limit,
+                           log_dir=str(log_dir), display="none", max_connections=args.workers)[0]
+        if log.status != "success":
+            raise RuntimeError("the run with prompt %s ended with status %s%s" % (prompt, log.status, ": " + log.error.message if log.error else ""))
+        if log.samples is None:
+            raise ValueError("the log of the run with prompt %s has no samples" % prompt)
+        score = log.results.scores[0]
+        metrics = {name: m.value for name, m in score.metrics.items()}
+        return compare.make_run(metrics, score.scored_samples, score.unscored_samples, [str(s.id) for s in log.samples], log.location)
+
+    candidate, reference = args.compare
+    argv = ["--candidate", candidate, "--reference", reference, "--out", args.result, "--split", args.split, "--grader", judge]
+    code = compare.main(argv + (["--limit", str(args.limit)] if args.limit else []), runner=runner)
+    if code in (0, 1):
+        info = {"candidate_prompt": candidate, "reference_prompt": reference, "task_model": task, "judge": judge}
+        pathlib.Path(args.result).with_suffix(".info.json").write_text(json.dumps(info, indent=2) + "\n", encoding="utf-8")
+    return code
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Evolve Sage's system prompt with GEPA on the tune tests, or compare two prompts")
+    parser.add_argument("--out", default=str(EVALS / "prompts" / "v0.1.md"), help="where to write the best prompt, default %(default)s")
+    parser.add_argument("--seed-prompt", default="v0", help="the prompt to start from, a file in evals/prompts without .md")
+    parser.add_argument("--budget", type=int, default=300, help="most judge calls (one per scenario scored), default %(default)s")
+    parser.add_argument("--max-reflections", type=int, default=30, help="most reflection calls to Claude, default %(default)s")
+    parser.add_argument("--workers", type=int, default=4, help="scenarios scored at once, default %(default)s")
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--task-model", help="model under test, default the Answers row of evals/RUN.md")
+    parser.add_argument("--judge", help="judge model, default the Gate judge row of evals/RUN.md")
+    parser.add_argument("--reflection-model", default="anthropic/claude-sonnet-5-5")
+    parser.add_argument("--log-dir", default="logs/lab-prompt", help="GEPA's state and summary.json, default %(default)s")
+    parser.add_argument("--compare", nargs=2, metavar=("CANDIDATE", "REFERENCE"), help="compare two prompts by name with evals/compare.py")
+    parser.add_argument("--result", default="result.json", help="with --compare, where compare.py writes its JSON verdict")
+    parser.add_argument("--split", choices=("tune", "gate", "all"), default="gate", help="with --compare, which tests")
+    parser.add_argument("--limit", type=int, help="with --compare, only the first N scenarios")
+    parser.add_argument("--self-test", action="store_true", help="check the scoring and feedback functions, no model")
+    args = parser.parse_args(argv)
+    try:
+        if args.self_test:
+            return self_test()
+        return compare_prompts(args) if args.compare else optimize(args)
+    except Exception as exc:  # noqa: BLE001 - one line and exit 2, never a traceback
+        print("evolve: error: %s: %s" % (type(exc).__name__, exc), file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
