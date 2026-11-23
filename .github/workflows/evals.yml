@@ -14,7 +14,7 @@ on:
     inputs:
       model:
         description: Model under test
-        default: openai-api/nvidia/google/gemma-4-31b-it
+        default: google/gemma-4-31b-it
       grader:
         description: Gate judge
         default: openai-api/nvidia/nvidia/nemotron-3-ultra-550b-a55b
@@ -81,6 +81,7 @@ jobs:
       LIMIT: ${{ inputs.limit }}
       NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
       NVIDIA_BASE_URL: https://integrate.api.nvidia.com/v1
+      GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
