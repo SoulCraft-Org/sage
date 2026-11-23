@@ -1,0 +1,55 @@
+name: Practice
+description: "A way a person can grow, with its source. A maintainer reviews it before it joins Sage."
+title: "Practice: its name"
+labels: ["help"]
+type: Task
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Name
+      description: "What people call this practice."
+      placeholder: "Three good things"
+    validations:
+      required: true
+  - type: textarea
+    id: practice
+    attributes:
+      label: The practice
+      description: "What a person does, in plain steps. One step per line."
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Source link
+      description: "A link to the paper, book or page that backs this practice."
+      placeholder: "https://"
+    validations:
+      required: true
+  - type: input
+    id: date_read
+    attributes:
+      label: Date read
+      description: "The day you read the source, as YYYY-MM-DD."
+      placeholder: "2026-11-22"
+    validations:
+      required: true
+  - type: input
+    id: licence
+    attributes:
+      label: Licence of the source
+      description: "The licence on the source text, such as CC BY 4.0 or all rights reserved. Write unknown if you cannot tell."
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Before you send
+      options:
+        - label: "No real person's story"
+          required: true
+        - label: "No private details"
+          required: true
+        - label: "I offer this under Apache-2.0"
+          required: true
