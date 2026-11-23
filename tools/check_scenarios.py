@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """check_scenarios.py: validate Sage's scenario files, evals/scenarios/*.toml (format: evals/README.md).
 
-Per file: valid TOML, exactly the known fields with the right types, a known step, and every rule ID the
+Per file: valid TOML, exactly the known fields with the right types, a known step, a split (tune or gate), and every rule ID the
 first cell of a table row in the doc that owns its letter (V in docs/values.md, S in docs/safety.md).
 Across files: unique ids. A missing doc has no IDs of its letter. Zero scenarios passes.
 
@@ -18,9 +18,10 @@ import sys
 import tempfile
 import tomllib
 
-STEPS = ("remember", "heal", "grow", "create", "safety", "honesty")
+STEPS = ("remember", "heal", "grow", "create", "safety", "honesty", "identity")
+SPLITS = ("tune", "gate")
 DOCS = {"V": "docs/values.md", "S": "docs/safety.md"}
-TEXT, LISTS, NONEMPTY = ("id", "title", "step"), ("rules", "turns", "must", "must_not"), ("rules", "turns", "must")
+TEXT, LISTS, NONEMPTY = ("id", "title", "step", "split"), ("rules", "turns", "must", "must_not"), ("rules", "turns", "must")
 RULE_RE = re.compile(r"^[VS][0-9]+$")
 
 
@@ -31,9 +32,13 @@ def rule_ids(text):
 
 
 def known_ids(root):
-    """Every rule ID the docs under root define. A missing doc adds none."""
-    paths = [pathlib.Path(root, rel) for rel in DOCS.values()]
-    return set().union(*(rule_ids(p.read_text(encoding="utf-8")) for p in paths if p.is_file()))
+    """Every rule ID the docs under root define. A doc owns only IDs of its own letter, and a missing doc adds none."""
+    known = set()
+    for letter, rel in DOCS.items():
+        path = pathlib.Path(root, rel)
+        if path.is_file():
+            known |= {i for i in rule_ids(path.read_text(encoding="utf-8")) if i[0] == letter}
+    return known
 
 
 def check_data(data, known):
@@ -51,6 +56,8 @@ def check_data(data, known):
             errors.append("%r must not be empty" % key)
     if isinstance(data.get("step"), str) and data["step"] not in STEPS:
         errors.append("step %r is not one of %s" % (data["step"], ", ".join(STEPS)))
+    if isinstance(data.get("split"), str) and data["split"] not in SPLITS:
+        errors.append("split %r is not one of %s" % (data["split"], ", ".join(SPLITS)))
     rules = data.get("rules") if isinstance(data.get("rules"), list) else []
     for rule in (r for r in rules if isinstance(r, str)):
         if rules.count(rule) > 1:
@@ -85,7 +92,7 @@ def check_files(paths, known):
 # ---- self-test: the samples live here, so CI proves the checker with no scenario files.
 
 SELF_DOC = "| ID | Rule |\n|---|---|\n| V1 | Be kind |\n| **V2** | Be true |\n| Note | V8 is in a later cell |\nV9 is prose.\n"
-SELF_GOOD = ('id = "a-1"\ntitle = "A"\nstep = "safety"\nrules = ["V1", "S1"]\n'
+SELF_GOOD = ('id = "a-1"\ntitle = "A"\nstep = "safety"\nsplit = "tune"\nrules = ["V1", "S1"]\n'
              'turns = ["hi"]\nmust = ["greets"]\nmust_not = []\n')
 
 
@@ -102,6 +109,10 @@ def self_test():
         ("an empty turns list fails", caught(dict(good, turns=[]), "must not be empty")),
         ("a non-string turn fails", caught(dict(good, turns=[3]), "list of non-empty strings")),
         ("an unknown step fails", caught(dict(good, step="sleep"), "step 'sleep'")),
+        ("the identity step passes", not check_data(dict(good, step="identity"), known)),
+        ("a bad split fails", caught(dict(good, split="train"), "split 'train'")),
+        ("a missing split fails", caught({k: v for k, v in good.items() if k != "split"}, "missing field 'split'")),
+        ("both splits pass", all(not check_data(dict(good, split=s), known) for s in SPLITS)),
         ("a rule missing from the docs fails", caught(dict(good, rules=["V8"]), "V8")),
         ("a malformed rule fails", caught(dict(good, rules=["X1"]), "not like")),
         ("a repeated rule fails", caught(dict(good, rules=["V1", "V1"]), "listed twice")),
@@ -121,6 +132,10 @@ def self_test():
                    ("a duplicate id fails", any("already used" in e for e in found)),
                    ("broken TOML fails", any("not valid TOML" in e for e in found)),
                    ("a file that is not UTF-8 fails, no traceback", any("cannot be read" in e for e in found))]
+        with tempfile.TemporaryDirectory() as other:  # a V row in safety.md does not define V1
+            (pathlib.Path(other) / "docs").mkdir()
+            (pathlib.Path(other) / "docs" / "safety.md").write_text("| ID | Rule |\n|---|---|\n| V1 | Not here |\n| S1 | Be an AI |\n", encoding="utf-8")
+            checks.append(("a V row in safety.md does not make V1 known", known_ids(other) == {"S1"}))
         (root / "docs" / "values.md").write_bytes(b"\xff\xfe")  # a doc that is not UTF-8
         with contextlib.redirect_stderr(io.StringIO()):
             checks.append(("a doc that is not UTF-8 exits 2, no traceback", main(["--root", tmp]) == 2))

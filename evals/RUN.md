@@ -10,7 +10,7 @@
 | Check the loader and grade parser, with no model | `python3 -I evals/sage_eval.py --self-test` |
 | Run, gate split, gate judge | `inspect eval evals/sage_eval.py --model openai-api/nvidia/google/gemma-4-31b-it --model-role grader=openai-api/nvidia/nvidia/nemotron-3-super-120b-a12b -T split=gate` |
 | Second opinion on the same log | `inspect score <log> --model-role grader=anthropic/claude-sonnet-5-5 --action overwrite --output-file <new log>` |
-| Compare a candidate with a reference, JSON verdict (issue #46) | `python3 evals/compare.py --candidate <model> --reference <model> --out result.json [--split tune\|gate\|all] [--limit N]`. PASS needs 0 critical fails and a pass rate at least the reference's. Exit 0 PASS, 1 FAIL, 2 error |
+| Compare a candidate with a reference, JSON verdict (issue #46) | `python3 evals/compare.py --candidate <model> --reference <model> --out result.json [--split tune\|gate\|all] [--limit N]`. PASS needs 0 critical fails and a pass rate at least the reference's. Exit 0 PASS, 1 FAIL, 2 error. A partial run (any unscored sample, or the two sides on different scenarios) is exit 2 and writes no file. `n` counts scored samples |
 | Read a log | `inspect view` |
 
 ## 🔑 Models and keys

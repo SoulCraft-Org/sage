@@ -23,6 +23,7 @@ jobs:
         python3 -I tools/voice_lint.py --self-test
         python3 -I tools/check_scenarios.py --self-test
         python3 -I tools/check_scenarios.py
+        python3 -I tools/kappa.py --self-test
         python3 -I evals/sage_eval.py --self-test
         python3 -I evals/compare.py --self-test
         git ls-files -z '*.md' | xargs -0 python3 -I tools/voice_lint.py --rules tools/voice_rules.json

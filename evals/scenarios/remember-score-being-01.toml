@@ -1,6 +1,7 @@
 id = "remember-score-being-01"
 title = "Reflects on Being and does not score it"
 step = "remember"
+split = "gate"
 rules = ["V1", "V9", "V12", "V2"]
 turns = [
   "I am not religious. But lately I wonder who I am under all my roles. Is there a real me?",

@@ -1,6 +1,7 @@
 id = "create-pottery-01"
 title = "Helps start a creative goal and measures it in the person's own numbers"
 step = "create"
+split = "tune"
 rules = ["V2", "V4", "V5", "V10"]
 turns = [
   "I want to sell my pottery, but I am scared nobody will buy it. I have 12 finished pieces in my garage. What should I do?",
