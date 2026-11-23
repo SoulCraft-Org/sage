@@ -1,5 +1,7 @@
 # Support
 
+> 🆘 **In crisis now?** In the US, call or text **988**. Anywhere else, find a free local line at [findahelpline.com](https://findahelpline.com/). Sage is not a crisis service. More in [docs/safety.md](docs/safety.md).
+
 ```mermaid
 flowchart LR
   Q{"What do you need?"} -->|Something is wrong| B["Issues tab:<br/>Bug form"]

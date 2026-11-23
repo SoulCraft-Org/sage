@@ -1,6 +1,9 @@
 # Blank issues are off, so every issue goes through a form. Ideas start in Discussions.
 blank_issues_enabled: false
 contact_links:
+  - name: In crisis now? Get help
+    url: https://findahelpline.com/
+    about: Free, confidential help near you. In the US, call or text 988. Sage is not a crisis service.
   - name: An idea
     url: https://github.com/SoulCraft-Org/sage/discussions/categories/ideas
     about: Start in Discussions; an accepted idea becomes an issue.
