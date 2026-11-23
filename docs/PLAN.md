@@ -34,13 +34,14 @@ The Soul and the Tests carry over to every new Mind. That is the road to superin
 
 ```mermaid
 flowchart LR
-  S["📜 Soul"] --> T["📏 Tests"] --> V["🌱 v0<br/>base + soul prompt"] --> D["📚 Data"] --> F["🔧 Adapter"] --> G{"✅ Gate"}
+  S["📜 Soul"] --> T["📏 Tests"] --> V["🌱 v0<br/>prompt"] --> E["🌀 v0.1<br/>evolved prompt"] --> D["📚 Data"] --> F["🔧 Adapter"] --> G{"✅ Gate"}
   G -- pass --> H["🏠 Your computer"]
   G -- "fail: new tests, new data" --> T
 ```
 
 | Choice | Decision |
 |---|---|
+| 🧭 Path | The cheapest way that passes the gate ships. All 22 ways, rated: [methods.md](methods.md) |
 | 🧾 Recipe | Open Character Training: the Soul as a constitution, then preference and introspection data, then a LoRA adapter ([arXiv 2511.01689](https://arxiv.org/abs/2511.01689)) |
 | 🧠 First base | `google/gemma-4-12B-it`, Apache 2.0. A second base, Inkling 2 Mini, is scored in v0 too |
 | ✍️ Teacher | Claude writes and checks the training dialogues |
@@ -70,7 +71,7 @@ flowchart LR
 |---|---|---|---|
 | 0 | 🗺️ Plan | This page, values, sources, safety, 12 seed tests, forms | CI green |
 | 1 | 📏 Tests | 100 scenarios, a runner, a judge | Judge agrees with 3 people, κ ≥ 0.6 |
-| 2 | 🌱 Sage v0 | Base plus soul prompt, scored | Scores published with case counts |
+| 2 | 🌱 Sage v0 | A prompt, then an evolved prompt, scored | Scores published with case counts |
 | 3 | 📚 Data | About 10k dialogues and a data card | Every row has a source. Target: 200-row human check ≥ 90% |
 | 4 | 🧪 Sage v1 | Adapter on 12B, exported to GGUF | The gate below |
 | 5 | 🏠 Home | Install guide, AI notice, crisis card | Three steps to install. Works offline |
