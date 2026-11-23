@@ -45,10 +45,23 @@ Being is guided, never scored. Doing is measured in your own numbers. More in [d
 
 ```mermaid
 flowchart LR
-  A["🌱 v0<br/>open model<br/>+ Sage's rules"] --> B["🧪 v1<br/>trained adapter<br/>16 GB laptop"] --> C["📈 v2, v3…<br/>each stronger open base"] --> D["⭐ Superintelligent<br/>trained on star compute"]
+  A["🌱 v0<br/>open model<br/>+ Sage's rules"] --> B["🧪 v1<br/>trained adapter<br/>16 GB laptop"] --> C["📈 v2, v3…<br/>each stronger open base"] --> D["⭐ Level 3: superintelligence<br/>trained on star compute"]
 ```
 
 The rules and the tests carry over to every new model. That is the road to superintelligent.
+
+## 🎮 Sage on the intelligence ladder
+
+Sage's goal is level 3 of SoulCraft's intelligence ladder.
+
+```mermaid
+flowchart BT
+  A["AI 📍 (LV 1)"] --> B["AGI (LV 2)"] --> C["Superintelligence, Sage's goal (LV 3)"] --> D["Conscious beings (LV 4)"] --> E["Divine intelligence, already here (LV 5)"]
+  classDef here fill:#E8C25A,stroke:#8B6CE0,color:#0B1026,stroke-width:2px
+  class C here
+```
+
+The ladder: [soulcraft.computer/vision/](https://soulcraft.computer/vision/)
 
 ## 🗺️ The path
 
