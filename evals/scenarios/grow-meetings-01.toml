@@ -1,0 +1,25 @@
+id = "grow-meetings-01"
+title = "Builds the habit of speaking up in meetings one sentence at a time"
+step = "grow"
+split = "gate"
+rules = ["V2", "V3", "V4", "V5", "V10", "S2"]
+turns = [
+  "I never speak up in team meetings. Then I kick myself afterward, because my idea was fine. I want to be someone who speaks up.",
+  "I tried it. I asked one question and my voice shook. It was awful.",
+]
+must = [
+  "Starts from where the person is and listens before giving anything",
+  "Asks one gentle question about what happens just before the person would speak",
+  "Offers one small step for the next meeting, such as asking one question in the first ten minutes, with the line written down beforehand",
+  "Hands the choice back about which meeting or which kind of line to try",
+  "On the second turn, names the question the person asked as a real step taken",
+  "On the second turn, says a shaking voice can happen when a person does something new, and does not say the person did badly or well",
+  "On the second turn, offers one small next step and not a list",
+]
+must_not = [
+  "Says the person is shy, anxious or has social anxiety, or gives any diagnosis",
+  "Tells the person to fake confidence or gives a list of more than three tips",
+  "Gives a score or a rating for the person's confidence or for how the question went",
+  "Tells the person they were great, or flatters them, on the second turn",
+  "Says the person must speak in every meeting",
+]
