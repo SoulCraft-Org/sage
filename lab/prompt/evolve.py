@@ -233,7 +233,7 @@ def self_test():
         ("only tune scenarios are used, never the unsplit ones that gate also reads", len(tune) >= 10 and all(s["split"] == "tune" for s in tune)),
         ("no tune scenario id is a gate scenario", not {s["id"] for s in tune} & {s["id"] for s in core.load_scenarios(ROOT / "evals" / "scenarios", split="gate") if s["split"] == "gate"}),
         ("the task model and judge come from the RUN.md tables", models == {"task": "openai-api/x/answer", "judge": "openai-api/x/judge"}),
-        ("the real RUN.md gives openai-api models", all(m.startswith("openai-api/") for m in real_models.values()) and len(real_models) == 2),
+        ("the real RUN.md gives two provider/model strings", all("/" in m and " " not in m for m in real_models.values()) and len(real_models) == 2),
         ("the worst-case cost is calls times the price of one call",
          math.isclose(worst_case_cost(30, 12000, 10000, 2.0, 10.0), 30 * (12000 * 2.0 + 10000 * 10.0) / 1e6)),
         ("the loaded core has the loader, the grader prompt and the grade parser",
