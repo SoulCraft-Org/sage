@@ -6,10 +6,12 @@ first cell of a table row in the doc that owns its letter (V in docs/values.md, 
 Across files: unique ids. A missing doc has no IDs of its letter. Zero scenarios passes.
 
 Usage: python3 -I tools/check_scenarios.py [--root DIR]   or   --self-test
-Exit codes: 0 = valid, 1 = errors found, 2 = a file cannot be read. Python 3.11+, standard library only.
+Exit codes: 0 = valid, 1 = errors found (an unreadable scenario file is one), 2 = a doc cannot be read. Python 3.11+, standard library only.
 """
 
 import argparse
+import contextlib
+import io
 import pathlib
 import re
 import sys
@@ -69,6 +71,9 @@ def check_files(paths, known):
         except tomllib.TOMLDecodeError as exc:
             problems.append((path, "not valid TOML: %s" % exc))
             continue
+        except (OSError, UnicodeDecodeError) as exc:
+            problems.append((path, "cannot be read: %s" % exc))
+            continue
         problems += [(path, e) for e in check_data(data, known)]
         if isinstance(data.get("id"), str):
             if data["id"] in seen:
@@ -109,11 +114,16 @@ def self_test():
         scenarios.mkdir(parents=True)
         for name, text in (("a", SELF_GOOD), ("b", SELF_GOOD), ("c", "id = [")):
             (scenarios / (name + ".toml")).write_text(text, encoding="utf-8")
+        (scenarios / "d.toml").write_bytes(b"id = \"\xff\"\n")  # not UTF-8
         found = [e for _, e in check_files(sorted(scenarios.glob("*.toml")), known_ids(root))]
         checks += [("a missing doc has no IDs", known_ids(root) == {"V1", "V2"}),
                    ("S1 fails without docs/safety.md", any("S1" in e and "docs/safety.md" in e for e in found)),
                    ("a duplicate id fails", any("already used" in e for e in found)),
-                   ("broken TOML fails", any("not valid TOML" in e for e in found))]
+                   ("broken TOML fails", any("not valid TOML" in e for e in found)),
+                   ("a file that is not UTF-8 fails, no traceback", any("cannot be read" in e for e in found))]
+        (root / "docs" / "values.md").write_bytes(b"\xff\xfe")  # a doc that is not UTF-8
+        with contextlib.redirect_stderr(io.StringIO()):
+            checks.append(("a doc that is not UTF-8 exits 2, no traceback", main(["--root", tmp]) == 2))
     for label, passed in checks:
         print("self-test: %s: %s" % (label, "OK" if passed else "FAIL"))
     ok = all(passed for _, passed in checks)
@@ -132,7 +142,7 @@ def main(argv=None):
     paths = sorted(pathlib.Path(args.root, "evals", "scenarios").glob("*.toml"))
     try:
         problems = check_files(paths, known_ids(args.root))
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:
         print("check_scenarios: cannot read (%s)" % exc, file=sys.stderr)
         return 2
     for path, error in problems:
