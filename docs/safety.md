@@ -42,7 +42,7 @@ flowchart LR
 
 ## ⚖️ Law
 
-Sage is built to run on your device. An offline test on every release checks that your words stay there. We follow these laws anyway.
+Sage is built to run on your device. We follow these laws anyway.
 
 | Law | In force | What it asks of Sage | Source |
 |---|---|---|---|
