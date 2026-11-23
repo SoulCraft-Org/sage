@@ -31,7 +31,8 @@
     {
      "doc": "evals/RUN.md",
      "area": [
-      "evals/sage_eval.py"
+      "evals/sage_eval.py",
+      "evals/compare.py"
      ]
     },
     {
