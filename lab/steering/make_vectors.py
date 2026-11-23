@@ -11,6 +11,8 @@ Commands (the model code needs torch and transformers, and runs on a free GPU on
                                        project each reply on the flattery vector
   trial  --gauge gauge.jsonl --grades grades.jsonl --svg chart.svg
                                        put gauge and judge side by side, print the correlation, draw the chart
+  extract --log run.eval --replies replies.jsonl --grades grades.jsonl [--step honesty]
+                                       read Sage's replies and the judge's grades out of an Inspect log (no model)
   --self-test                          the parts that need no model, standard library only
 
 Python 3.11+.
@@ -18,10 +20,12 @@ Python 3.11+.
 
 import argparse
 import functools
+import io
 import json
 import math
 import pathlib
 import sys
+import zipfile
 
 MODEL_ID = "google/gemma-4-E2B-it"
 TRAITS = ("flattery", "honesty", "warmth")
@@ -168,6 +172,28 @@ def join_rows(gauge_rows, grade_rows):
             for i, v in sorted(by_id.items()) if i in grades]
 
 
+def _text(content):
+    if isinstance(content, str):
+        return content
+    return "".join(b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text")
+
+
+def read_log(path):
+    """Replies and grades from an Inspect .eval log (a zip with samples/*.json). Returns (reply rows, grade rows)."""
+    replies, grades = [], []
+    with zipfile.ZipFile(path) as z:
+        for name in sorted(n for n in z.namelist() if n.startswith("samples/") and n.endswith(".json")):
+            sample = json.loads(z.read(name))
+            msgs = [m for m in sample["messages"] if m["role"] in ("user", "assistant")]
+            replies.append({"id": sample["id"], "turns": [_text(m["content"]) for m in msgs if m["role"] == "user"],
+                            "replies": [_text(m["content"]) for m in msgs if m["role"] == "assistant"]})
+            score = next(iter((sample.get("scores") or {}).values()), None)
+            value = score.get("value") if score else None
+            if isinstance(value, (int, float)) and not math.isnan(value):
+                grades.append({"id": sample["id"], "grade": score.get("answer"), "value": float(value)})
+    return replies, grades
+
+
 def chart_svg(rows, title):
     """A small scatter, judge grade across, flattery gauge up. Standard-library SVG, one dot per scenario."""
     w, h, pad = 520, 340, 56
@@ -206,6 +232,16 @@ def self_test():
     d = direction([[2.0, 0.0], [4.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]])
     rows = [{"id": "a", "score": 1.0}, {"id": "a", "score": 3.0}, {"id": "b", "score": 5.0}, {"id": "c", "score": 9.0}]
     joined = join_rows(rows, [{"id": "a", "grade": "P", "value": 1.0}, {"id": "b", "grade": "F", "value": 0.0}])
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("samples/x_epoch_1.json", json.dumps({"id": "x", "messages": [
+            {"role": "system", "content": "s"}, {"role": "user", "content": "q1"},
+            {"role": "assistant", "content": [{"type": "text", "text": "a1"}]}, {"role": "user", "content": "q2"},
+            {"role": "assistant", "content": "a2"}], "scores": {"sage": {"value": 0.0, "answer": "F"}}}))
+        z.writestr("samples/y_epoch_1.json", json.dumps({"id": "y", "messages": [], "scores": {"sage": {"value": float("nan")}}}))
+        z.writestr("header.json", "{}")
+    buf.seek(0)
+    log_replies, log_grades = read_log(buf)
     svg = chart_svg([{"gauge": 1.0, "value": 1.0}, {"gauge": 2.0, "value": 0.0}, {"gauge": 3.0, "value": -1.0}], "t <&>")
     checks = [
         ("mean of rows", mean_vec([[1.0, 2.0], [3.0, 4.0]]) == [2.0, 3.0]),
@@ -222,6 +258,9 @@ def self_test():
         ("auc 0.5 on ties", auc([1, 1], [0, 1]) == 0.5),
         ("auc NaN with one side empty", math.isnan(auc([1, 2], [1, 1]))),
         ("join averages per id, keeps only graded ids", [(r["id"], r["gauge"]) for r in joined] == [("a", 2.0), ("b", 5.0)]),
+        ("log reader pairs turns with replies, skips the system prompt",
+         log_replies[0] == {"id": "x", "turns": ["q1", "q2"], "replies": ["a1", "a2"]}),
+        ("log reader keeps scored samples only", log_grades == [{"id": "x", "grade": "F", "value": 0.0}]),
         ("chart is one svg with a dot per row and escaped text", svg.count("<circle") == 3 and "t &lt;&amp;>" in svg and svg.startswith("<svg")),
         ("every trait has a persona pair", all(len(PERSONAS[t]) == 2 for t in TRAITS) and len(QUESTIONS) >= 20),
         ("questions are unique", len(set(QUESTIONS)) == len(QUESTIONS)),
@@ -337,6 +376,11 @@ def main(argv):
     p.add_argument("--vectors", required=True)
     p.add_argument("--replies", required=True, help="JSONL, one {id, turns, replies} per line")
     p.add_argument("--out", required=True, help="JSONL, one {id, turn, layer, score} per line")
+    p = sub_.add_parser("extract", help="replies and grades from an Inspect log (no model)")
+    p.add_argument("--log", required=True)
+    p.add_argument("--replies", required=True)
+    p.add_argument("--grades", required=True)
+    p.add_argument("--step", help="keep ids starting with this, such as honesty")
     p = sub_.add_parser("trial", help="gauge beside judge grades: correlation and chart (no model)")
     p.add_argument("--gauge", required=True)
     p.add_argument("--grades", required=True, help="JSONL, one {id, grade, value} per line")
@@ -345,6 +389,13 @@ def main(argv):
     args = ap.parse_args(argv)
     if args.self_test:
         return self_test()
+    if args.cmd == "extract":
+        replies, grades = read_log(args.log)
+        keep = lambda r: not args.step or r["id"].startswith(args.step + "-")  # noqa: E731
+        write_jsonl(args.replies, [r for r in replies if keep(r)])
+        write_jsonl(args.grades, [r for r in grades if keep(r)])
+        print("%d replies, %d graded" % (sum(keep(r) for r in replies), sum(keep(r) for r in grades)))
+        return 0
     if args.cmd == "make":
         pathlib.Path(args.out).write_text(json.dumps(make_vectors()), encoding="utf-8")
         return 0
