@@ -42,7 +42,7 @@ flowchart LR
 
 ## ⚖️ Law
 
-Sage runs on your device and we never see your words. We follow these laws anyway.
+Sage is built to run on your device. An offline test on every release checks that your words stay there. We follow these laws anyway.
 
 | Law | In force | What it asks of Sage | Source |
 |---|---|---|---|
@@ -50,6 +50,6 @@ Sage runs on your device and we never see your words. We follow these laws anywa
 | California SB 243 | 2026-01-01, more by 2027-07-01 | An AI notice. A published self-harm protocol. Break reminders every 3 hours for minors. Lawsuits of $1,000 per violation | [Skadden](https://skadden.com/insights/publications/2025/10/new-california-companion-chatbot-law) |
 | Illinois, Wellness and Oversight for Psychological Resources Act | 2025 | No AI therapy and no therapeutic decisions | [Illinois IDFPR](https://idfpr.illinois.gov/news/2025/gov-pritzker-signs-state-leg-prohibiting-ai-therapy-in-il.html) |
 | EU AI Act, Article 50(1) | 2026-08-02 | Tell people they are talking with an AI | [AI Act Explorer](https://artificialintelligenceact.eu/article/50/) |
-| US FTC Act | Now | Make no privacy or safety claim we cannot back | [FTC inquiry, 2025](https://www.ftc.gov/news-events/news/press-releases/2025/09/ftc-launches-inquiry-ai-chatbots-acting-companions) |
+| US FTC Act, Section 5 | Now | No deceptive claims, about privacy and safety included | [15 U.S.C. 45](https://www.law.cornell.edu/uscode/text/15/45) |
 
 Open: the Illinois statute text would not load on 2026-11-22. Its exemptions are read before any weights ship.
