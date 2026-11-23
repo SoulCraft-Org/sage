@@ -1,6 +1,7 @@
 {
- "comment": "Sage's Quality, Speed and Consumption page (Git Crafter templates/quality). No code yet, so the code tab is left out.",
+ "comment": "Sage's Quality, Speed and Consumption page (Git Crafter templates/quality). The code tab covers tools/check_scenarios.py.",
  "tabs": [
+  "code",
   "documentation",
   "issues",
   "pull-requests",
