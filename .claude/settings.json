@@ -5,16 +5,7 @@
     "code-review@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true,
     "session-report@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true,
-    "claudius@claudius": true
-  },
-  "extraKnownMarketplaces": {
-    "claudius": {
-      "source": {
-        "source": "github",
-        "repo": "Colorado-Startups/claudius"
-      }
-    }
+    "claude-md-management@claude-plugins-official": true
   },
   "permissions": {
     "deny": [

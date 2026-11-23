@@ -25,21 +25,6 @@
   },
   {
    "use": "secure"
-  },
-  {
-   "use": "guard"
-  },
-  {
-   "use": "decide"
-  },
-  {
-   "use": "equip"
-  },
-  {
-   "use": "publish"
-  },
-  {
-   "use": "visibility"
   }
  ],
  "data": "quality/process/data/org.json",
@@ -66,6 +51,5 @@
    "label": "Process",
    "icon": "plan"
   }
- ],
- "quality_config": "quality/config.json"
+ ]
 }
