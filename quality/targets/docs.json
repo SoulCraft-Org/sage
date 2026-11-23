@@ -29,6 +29,19 @@
      ]
     },
     {
+     "doc": "evals/RUN.md",
+     "area": [
+      "evals/sage_eval.py",
+      "evals/compare.py"
+     ]
+    },
+    {
+     "doc": "evals/prompts/*.md",
+     "area": [
+      "evals/sage_eval.py"
+     ]
+    },
+    {
      "doc": "**",
      "area": [
       "{dir}/"
