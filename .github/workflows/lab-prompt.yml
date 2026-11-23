@@ -70,10 +70,11 @@ jobs:
           if [ -n "$TASK_MODEL" ]; then args+=(--task-model "$TASK_MODEL"); fi
           if [ -n "$JUDGE" ]; then args+=(--judge "$JUDGE"); fi
           # evals/compare.py exits 0 for PASS, 1 for FAIL and 2 for an incomplete run. A FAIL verdict is a result, kept in
-          # result.json. Only an incomplete run turns the job red.
+          # result.json. An incomplete run, a crash (such as 137 from an out-of-memory kill) or a missing result.json turns
+          # the job red.
           code=0
           python3 lab/prompt/evolve.py --compare v0.1 v0 --split gate --result result.json "${args[@]}" || code=$?
-          if [ "$code" -eq 2 ]; then exit 2; fi
+          if [ "$code" -gt 1 ] || [ ! -f result.json ]; then exit 2; fi
       - name: Summary
         if: always()
         run: |

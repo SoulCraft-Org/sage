@@ -20,7 +20,7 @@ Evolve Sage's system prompt with [GEPA](https://arxiv.org/abs/2507.19457) and ke
 | Defaults | Budget 300 judge calls. Task model and judge are read from the tables in [`evals/RUN.md`](../../evals/RUN.md), so a judge change there reaches this lab. Reflection model `anthropic/claude-sonnet-5-5` |
 | Keys | `NVIDIA_API_KEY` for the task model and judge, `ANTHROPIC_API_KEY` for the reflection model. The workflow reads both from secrets |
 | What you get | Artifact `lab-prompt`: `evals/prompts/v0.1.md`, GEPA's state and `summary.json`, and `result.json`, the verdict of `evals/compare.py` on the `gate` tests, v0.1 against v0 |
-| Red job | Only an incomplete run, as `evals/compare.py` defines it. A FAIL verdict is a result in `result.json` and does not turn the job red |
+| Red job | An incomplete run, a crash or a missing `result.json`. A FAIL verdict is a result in `result.json` and does not turn the job red |
 | Check with no model | `python3 -I lab/prompt/evolve.py --self-test` |
 | Run by hand | `pip install -r evals/requirements.txt gepa==0.1.4`, then `python3 lab/prompt/evolve.py --out evals/prompts/v0.1.md --budget 300` |
 
