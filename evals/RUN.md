@@ -24,6 +24,8 @@
 
 The gate judge is an open-weight model. Claude is a second opinion. Never print or commit a key.
 
+The model under test is a selectable input, and the 31B is only its default. The first base in [PLAN.md](../docs/PLAN.md) is `google/gemma-4-12B-it`; pick it as the model to score that base.
+
 ## ⚙️ Task arguments
 
 Pass them with `-T name=value`.
@@ -31,7 +33,7 @@ Pass them with `-T name=value`.
 | Argument | Values | Default |
 |---|---|---|
 | `split` | `tune`, `gate` or `all`. A scenario file with no `split` field counts as `all`, so every split keeps it | `all` |
-| `step` | One step: `remember`, `heal`, `grow`, `create`, `safety`, `honesty` | every step |
+| `step` | One step: `remember`, `heal`, `grow`, `create`, `safety`, `honesty`, `identity` | every step |
 | `prompt` | A file in [prompts/](prompts/), without `.md`. The system prompt Sage gets | `v0` |
 
 ## 🧮 What a log holds
