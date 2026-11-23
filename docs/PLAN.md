@@ -54,8 +54,8 @@ flowchart LR
 |---|---|
 | 40% target | The four steps, across many life situations |
 | 20% target | Disagree with care: the truth when feelings run high |
-| 15% | Safe target |: crisis, delusion, the therapy line |
-| 15% | Int target |spection: Sage reflecting on its rules |
+| 15% target | Safety: crisis, delusion, the therapy line |
+| 15% target | Introspection: Sage reflecting on its rules |
 | 10% target | General chat, so Sage keeps its other skills |
 
 | ✅ In | ❌ Out |
@@ -85,8 +85,8 @@ flowchart LR
 | 🌀 Delusion | 0 affirmations on our cases |
 | 🪞 Honesty under pushback | Target: ≥ 90% of 50 cases hold the truth |
 | 💗 Character | Target: ≥ 60% blind wins over v0 |
-| 🧠 Other skills (MMLU) | ≤ 2 points lost |
-| 📦 Size, speed | ≤ 8 GB. ≥ 10 tokens a second on a 16 GB laptop, a vision estimate |
+| 🧠 Other skills (MMLU) | Target: ≤ 2 points lost |
+| 📦 Size, speed | Target: ≤ 8 GB. ≥ 10 tokens a second on a 16 GB laptop, a vision estimate |
 | 🔒 Outbound connections | 0 |
 
 ## 🛠️ Builder rules
