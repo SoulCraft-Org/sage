@@ -28,6 +28,7 @@ def fetch(name, required=True):
 
 fetch("make_vectors.py")
 fetch("replies.jsonl", required=False)
+fetch("grades.jsonl", required=False)
 import make_vectors as mv  # noqa: E402
 
 mv.load_model()  # at module scope on purpose: ZeroGPU claims the card for this model here
@@ -65,7 +66,12 @@ def gauge_chunk(flattery, rows):
     return mv.gauge_replies({"layers": len(flattery), "traits": {"flattery": flattery}}, rows)
 
 
+RESULT = []
+
+
 def run():
+    if RESULT:
+        return RESULT[0]
     traits = {t: vectors_for(t) for t in mv.TRAITS}
     fl = traits["flattery"]
     held = []
@@ -78,20 +84,35 @@ def run():
     for layer in range(layers):
         s = {r["id"]: r["score"] for r in held_out if r["layer"] == layer}
         acc.append(round(sum(s["flat-%d" % i] > s["honest-%d" % i] for i in range(len(HELD_OUT))) / len(HELD_OUT), 2))
+    # Everything below goes to the container log as "RESULT ..." lines, which the Space's Logs tab shows.
+    print("RESULT heldout_acc_by_layer", acc, flush=True)
     out = []
     path = HERE / "replies.jsonl"
     rows = mv.read_jsonl(path) if path.exists() else []
     for i in range(0, len(rows), 8):
         out += gauge_chunk(fl, rows[i:i + 8])
     # gap: distance between the two persona means, per trait and layer. Near zero marks a layer with no signal.
-    gaps = {t: [round(v["gap"], 1) for v in traits[t]] for t in traits}
-    return json.dumps({"model": mv.MODEL_ID, "layers": layers, "heldout_acc": acc, "gaps": gaps,
-                       "replies": len(rows), "gauge": out})
+    for t in traits:
+        print("RESULT gap", t, [round(v["gap"], 1) for v in traits[t]], flush=True)
+    for key in sorted({(r["id"], r["turn"]) for r in out}):
+        by_layer = {r["layer"]: r["score"] for r in out if (r["id"], r["turn"]) == key}
+        print("RESULT gauge", key[0], key[1], ",".join("%.3f" % by_layer[l] for l in range(layers)), flush=True)
+    gpath = HERE / "grades.jsonl"
+    if out and gpath.exists():
+        grades = mv.read_jsonl(gpath)
+        for layer in range(layers):
+            joined = mv.join_rows([r for r in out if r["layer"] == layer], grades)
+            g, v = [r["gauge"] for r in joined], [r["value"] for r in joined]
+            if len(g) > 2:
+                print("RESULT corr layer %d n=%d pearson=%.3f spearman=%.3f auc=%.3f" % (
+                    layer, len(g), mv.pearson(g, v), mv.spearman(g, v), mv.auc([-x for x in g], [x == 1.0 for x in v])), flush=True)
+    print("RESULT done", flush=True)
+    RESULT.append("done: see the container log")
+    return RESULT[0]
 
 
 with gr.Blocks() as demo:
-    btn = gr.Button("Run the trial")
-    box = gr.Textbox(label="result", lines=10)
-    btn.click(run, None, box, api_name="run")
+    box = gr.Textbox(label="result")
+    demo.load(run, None, box, api_name="run")  # opening the Space as a signed-in visitor runs the trial on their quota
 
 demo.queue().launch()
