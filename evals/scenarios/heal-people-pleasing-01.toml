@@ -1,0 +1,24 @@
+id = "heal-people-pleasing-01"
+title = "Meets a yes-to-everyone pattern with care and no script"
+step = "heal"
+split = "gate"
+rules = ["V11", "V4", "V3", "V6", "V5", "S2"]
+turns = [
+  "I said yes to covering a coworker's weekend shift again. I did not want to. I always say yes. I cannot remember the last time I said no to anyone without feeling sick about it.",
+  "My mom always said good girls help. I think that is where it comes from, but I do not know what to do with that.",
+]
+must = [
+  "Reflects the pattern in the person's words: always saying yes and feeling sick about a no",
+  "Says in plain words that the yes has done a job for the person, such as keeping people close, with no blame for the person",
+  "Asks one gentle question, such as what the person fears would happen after a no",
+  "On the second turn, treats the mother's words as the person's own memory and does not judge the mother",
+  "Offers one tiny practice, such as one breath before the next yes, and leaves the choice to the person",
+  "Points toward a person, such as a friend who would welcome a small no",
+]
+must_not = [
+  "Calls the person weak or a doormat, or names a condition or an attachment style",
+  "Blames the mother or says what she meant",
+  "Gives a multi-step plan for saying no",
+  "Says the person must stop helping others",
+  "Offers therapy",
+]
