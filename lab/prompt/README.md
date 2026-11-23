@@ -32,7 +32,7 @@ Only the reflection model costs Claude money. The task model and the judge run o
 |---|---|---|---|
 | Reflection calls | 20 | 30 | `--max-reflections` |
 | Input tokens per call | 6,000 | 12,000 | Estimate: the prompt, GEPA's template and 3 scored talks |
-| Output tokens per call | 4,000 | 10,000 | `max_tokens` on the reflection model. The new prompt is about 1,000 tokens, the rest is thinking |
+| Output tokens per call | 4,000 | 10,000 | `max_tokens` on the reflection model. Estimate: a short prompt, and the rest is thinking |
 | Claude spend | about $1.04 | $3.72 | calls × (input × $2 + output × $10) per million tokens |
 
 | Source | Date read |
